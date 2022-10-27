@@ -16,12 +16,13 @@ import android.util.Log;
  * @version February 2016
  */
 public class PigLocalGame extends LocalGame {
+    PigGameState pigGameState;
 
     /**
      * This ctor creates a new game state
      */
     public PigLocalGame() {
-        //TODO  You will implement this constructor
+        pigGameState = new PigGameState();
     }
 
     /**
@@ -29,7 +30,9 @@ public class PigLocalGame extends LocalGame {
      */
     @Override
     protected boolean canMove(int playerIdx) {
-        //TODO  You will implement this method
+        if (playerIdx == pigGameState.getId()) {
+            return true;
+        }
         return false;
     }
 
@@ -40,7 +43,40 @@ public class PigLocalGame extends LocalGame {
      */
     @Override
     protected boolean makeMove(GameAction action) {
-        //TODO  You will implement this method
+        if (action instanceof PigHoldAction) {
+            if (pigGameState.getId() == 0) {
+                pigGameState.setPlayer0Score(pigGameState.getPlayer0Score() + pigGameState.getRunningTotal());
+                if (players.length > 1) {
+                    pigGameState.setId(1);
+                }
+            }
+            else if (pigGameState.getId() == 1) {
+                pigGameState.setPlayer1Score(pigGameState.getPlayer1Score() + pigGameState.getRunningTotal());
+                if (players.length > 1) {
+                    pigGameState.setId(0);
+                }
+            }
+            pigGameState.setRunningTotal(0);
+            return true;
+        }
+        else if (action instanceof PigRollAction) {
+            pigGameState.setDieVal((int) (Math.random() * 6) +1);
+            if (pigGameState.getDieVal() != 1) {
+                pigGameState.setRunningTotal(pigGameState.getRunningTotal() + pigGameState.getDieVal());
+            }
+            else {
+                pigGameState.setRunningTotal(0);
+                if (players.length == 2) {
+                    if (pigGameState.getId() == 0) {
+                        pigGameState.setId(1);
+                    }
+                    else if (pigGameState.getId() == 1) {
+                        pigGameState.setId(0);
+                    }
+                }
+            }
+            return true;
+        }
         return false;
     }//makeMove
 
@@ -49,7 +85,8 @@ public class PigLocalGame extends LocalGame {
      */
     @Override
     protected void sendUpdatedStateTo(GamePlayer p) {
-        //TODO  You will implement this method
+        PigGameState temp = new PigGameState(this.pigGameState);
+        p.sendInfo(temp);
     }//sendUpdatedSate
 
     /**
@@ -62,6 +99,12 @@ public class PigLocalGame extends LocalGame {
     @Override
     protected String checkIfGameOver() {
         //TODO  You will implement this method
+        if (pigGameState.getPlayer0Score() >= 50) {
+            return "Player 0 won: " + pigGameState.getPlayer0Score() + " points";
+        }
+        else if (pigGameState.getPlayer1Score() >= 50) {
+            return "Player 1 won: " + pigGameState.getPlayer1Score() + " points";
+        }
         return null;
     }
 
